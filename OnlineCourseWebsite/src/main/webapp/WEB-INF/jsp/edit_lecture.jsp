@@ -10,8 +10,8 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <style>
         .card { border: none; border-radius: 15px; }
-        .file-item { transition: all 0.2s; }
-        .file-item:hover { background-color: #f8f9fa; }
+        .file-item { transition: all 0.2s; border-bottom: 1px solid #eee; }
+        .file-item:last-child { border-bottom: none; }
     </style>
 </head>
 <body class="bg-light">
@@ -29,6 +29,7 @@
                 </div>
 
                 <div class="card-body p-4">
+                    <%-- 注意：enctype="multipart/form-data" 是必須的 --%>
                     <form action="<c:url value='/lectures/edit/${lecture.id}'/>" method="post" enctype="multipart/form-data">
                         <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
 
@@ -49,28 +50,39 @@
 
                         <hr class="my-4">
 
-                        <h5 class="fw-bold mb-3 text-secondary">Existing Materials</h5>
-                        <div class="list-group mb-4">
-                            <c:forEach var="m" items="${lecture.materials}">
-                                <div class="list-group-item d-flex justify-content-between align-items-center file-item">
-                                    <div>
-                                        <i class="bi bi-file-earmark-text text-primary me-2"></i>
-                                        <strong>${m.fileName}</strong>
-                                        <div class="small text-muted">Summary: ${m.fileSummary}</div>
+                        <%-- --- 1. 編輯現有教材區域 --- --%>
+                        <h5 class="fw-bold mb-3 text-secondary">Existing Materials (Edit Summaries)</h5>
+                        <div class="card border mb-4">
+                            <div class="list-group list-group-flush">
+                                <c:forEach var="m" items="${lecture.materials}">
+                                    <div class="list-group-item p-3 file-item">
+                                        <div class="d-flex justify-content-between align-items-start mb-2">
+                                            <span class="fw-bold text-dark"><i class="bi bi-file-earmark-text"></i> ${m.fileName}</span>
+                                            <a href="<c:url value='/lectures/material/delete/${m.id}'/>"
+                                               class="btn btn-sm btn-outline-danger border-0"
+                                               onclick="return confirm('Permanently delete this file?')">
+                                                <i class="bi bi-trash"></i> Remove
+                                            </a>
+                                        </div>
+
+                                            <%-- 關鍵：傳送 ID 和新的摘要內容給 Controller --%>
+                                        <input type="hidden" name="existingMaterialIds" value="${m.id}">
+                                        <div class="input-group input-group-sm">
+                                            <span class="input-group-text">Summary</span>
+                                            <textarea name="existingSummaries" class="form-control" rows="1">${m.fileSummary}</textarea>
+                                        </div>
                                     </div>
-                                    <a href="<c:url value='/lectures/material/delete/${m.id}'/>"
-                                       class="btn btn-sm btn-outline-danger"
-                                       onclick="return confirm('Delete this note?')">
-                                        <i class="bi bi-trash"></i> Delete
-                                    </a>
-                                </div>
-                            </c:forEach>
+                                </c:forEach>
+                                <c:if test="${empty lecture.materials}">
+                                    <div class="p-4 text-center text-muted italic">No materials uploaded yet.</div>
+                                </c:if>
+                            </div>
                         </div>
 
                         <hr class="my-4">
 
+                        <%-- --- 2. 上傳新教材區域 --- --%>
                         <h5 class="fw-bold mb-3 text-success">Upload New Notes</h5>
-
                         <div id="file-container">
                             <div class="card bg-light border-0 mb-3">
                                 <div class="card-body p-3">
@@ -79,7 +91,7 @@
                                             <input type="file" name="files" class="form-control">
                                         </div>
                                         <div class="col-md-7">
-                                            <input type="text" name="fileSummaries" class="form-control" placeholder="Add a brief summary...">
+                                            <input type="text" name="fileSummaries" class="form-control" placeholder="Brief summary for this new file...">
                                         </div>
                                     </div>
                                 </div>
@@ -91,7 +103,7 @@
                         </button>
 
                         <div class="d-grid gap-2">
-                            <button type="submit" class="btn btn-primary btn-lg">Update Course</button>
+                            <button type="submit" class="btn btn-primary btn-lg shadow-sm">Update Course</button>
                         </div>
                     </form>
                 </div>
@@ -101,25 +113,26 @@
 </div>
 
 <script>
+    // 動態新增檔案欄位
     function addNewFileInput() {
         const container = document.getElementById('file-container');
         const newRow = document.createElement('div');
         newRow.className = 'card bg-light border-0 mb-3';
         newRow.innerHTML = `
-        <div class="card-body p-3">
-            <div class="row g-2">
-                <div class="col-md-5">
-                    <input type="file" name="files" class="form-control">
-                </div>
-                <div class="col-md-7">
-                    <input type="text" name="fileSummaries" class="form-control" placeholder="Add a brief summary...">
+            <div class="card-body p-3">
+                <div class="row g-2">
+                    <div class="col-md-5">
+                        <input type="file" name="files" class="form-control">
+                    </div>
+                    <div class="col-md-7">
+                        <input type="text" name="fileSummaries" class="form-control" placeholder="Brief summary for this new file...">
+                    </div>
                 </div>
             </div>
-        </div>
-    `;
+        `;
         container.appendChild(newRow);
     }
 </script>
-
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
