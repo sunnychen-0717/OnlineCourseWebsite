@@ -48,8 +48,9 @@ public class SecurityConfig {
                         .requestMatchers("/register").permitAll()
                         .requestMatchers("/files/**").permitAll()
                         .requestMatchers("/account/**").authenticated()
+                        .requestMatchers("/polls/add/**","/polls/create/**", "/polls/save/**").hasRole("TEACHER")
                         .requestMatchers("/polls/**").authenticated()
-                        .requestMatchers("/polls/create", "/polls/save").hasRole("TEACHER") // 只有老師能創建
+
 
 
                         .anyRequest().authenticated()
